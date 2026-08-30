@@ -1,16 +1,31 @@
+# syntax=docker/dockerfile:1
+
+# ── Stage 1: build ────────────────────────────────────────────────────────────
 FROM golang:1.23-alpine AS builder
+
 ENV GOTOOLCHAIN=auto
-WORKDIR /build
+
+WORKDIR /src
+
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
-    -o mockbackend ./mock-backend
 
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -trimpath \
+    -ldflags="-s -w" \
+    -o /out/mockbackend \
+    ./cmd/mockbackend
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM alpine:3.20
+
 RUN adduser -D -u 1000 sentinel
 USER sentinel
-WORKDIR /app
-COPY --from=builder /build/mockbackend .
+
+COPY --from=builder /out/mockbackend /mockbackend
+
 EXPOSE 9001
-ENTRYPOINT ["./mockbackend"]
+
+ENTRYPOINT ["/mockbackend"]

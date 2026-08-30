@@ -1,0 +1,9 @@
+.git
+.github
+*.md
+Dockerfile
+Dockerfile.mockbackend
+docker-compose.yml
+tests
+load-tests
+docs

@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # ── Stage 1: build ────────────────────────────────────────────────────────────
 FROM golang:1.23-alpine AS builder
 
@@ -5,7 +7,7 @@ FROM golang:1.23-alpine AS builder
 # Without this, GOTOOLCHAIN=local would refuse to run a newer go directive.
 ENV GOTOOLCHAIN=auto
 
-WORKDIR /build
+WORKDIR /src
 
 # Download dependencies first so this layer is cached between code changes.
 COPY go.mod go.sum ./
@@ -14,8 +16,11 @@ RUN go mod download
 # Copy source (the Lua script is embedded at compile time via //go:embed).
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" \
-    -o sentinel ./cmd/gateway
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -trimpath \
+    -ldflags="-s -w" \
+    -o /out/sentinel-gateway \
+    ./cmd/gateway
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM alpine:3.20
@@ -24,8 +29,8 @@ FROM alpine:3.20
 RUN adduser -D -u 1000 sentinel
 USER sentinel
 
-WORKDIR /app
-COPY --from=builder /build/sentinel .
+COPY --from=builder /out/sentinel-gateway /sentinel-gateway
 
 EXPOSE 8080
-ENTRYPOINT ["./sentinel"]
+
+ENTRYPOINT ["/sentinel-gateway"]

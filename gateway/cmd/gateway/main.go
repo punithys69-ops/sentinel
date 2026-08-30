@@ -23,38 +23,40 @@ func envOr(key, fallback string) string {
 func main() {
 	gatewayID := envOr("GATEWAY_ID", "gateway")
 	redisAddr := envOr("REDIS_ADDR", "localhost:6379")
+	upstreamAddr := envOr("UPSTREAM_ADDR", "http://localhost:9001")
 
-	log.Printf("[%s] connecting to Redis at %s", gatewayID, redisAddr)
+	log.SetFlags(log.LstdFlags)
+	log.SetPrefix("[" + gatewayID + "] ")
+
+	log.Printf("connecting to Redis at %s", redisAddr)
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr: redisAddr,
 	})
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		log.Fatalf("[%s] Redis ping failed: %v", gatewayID, err)
+		log.Fatalf("Redis ping failed: %v", err)
 	}
 
-	log.Printf("[%s] Redis OK", gatewayID)
+	log.Printf("Redis OK")
 
-	// capacity=10, rate=2 tokens/s, idle TTL=60 s
+	// capacity=10, refill=2 tokens/s, idle TTL=60s.
+	// These could also be read from environment variables in a later phase.
 	limiter, err := ratelimit.NewRedisLimiter(rdb, 10, 2, 60*time.Second)
 	if err != nil {
-		log.Fatalf("[%s] failed to create rate limiter: %v", gatewayID, err)
+		log.Fatalf("failed to create rate limiter: %v", err)
 	}
 
-	backendAddr := envOr("BACKEND_ADDR", "http://localhost:9001")
-
 	router, err := gw.NewRouter(map[string]string{
-		"/api": backendAddr,
+		"/api": upstreamAddr,
 	})
 	if err != nil {
-		log.Fatalf("[%s] failed to create router: %v", gatewayID, err)
+		log.Fatalf("failed to create router: %v", err)
 	}
 
 	handler := gw.RateLimitMiddleware(limiter, router)
 
-	log.Printf("[%s] listening on :8080", gatewayID)
+	log.Printf("listening on :8080 → upstream %s", upstreamAddr)
 
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
-

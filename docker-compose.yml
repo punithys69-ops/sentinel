@@ -14,14 +14,16 @@ services:
     build:
       context: ./gateway
       dockerfile: Dockerfile.mockbackend
+    expose:
+      - "9001"
 
   gateway1:
     build:
       context: ./gateway
     environment:
-      REDIS_ADDR: redis:6379
       GATEWAY_ID: gateway1
-      BACKEND_ADDR: http://mockbackend:9001
+      REDIS_ADDR: redis:6379
+      UPSTREAM_ADDR: http://mockbackend:9001
     depends_on:
       redis:
         condition: service_healthy
@@ -32,9 +34,9 @@ services:
     build:
       context: ./gateway
     environment:
-      REDIS_ADDR: redis:6379
       GATEWAY_ID: gateway2
-      BACKEND_ADDR: http://mockbackend:9001
+      REDIS_ADDR: redis:6379
+      UPSTREAM_ADDR: http://mockbackend:9001
     depends_on:
       redis:
         condition: service_healthy
@@ -45,9 +47,9 @@ services:
     build:
       context: ./gateway
     environment:
-      REDIS_ADDR: redis:6379
       GATEWAY_ID: gateway3
-      BACKEND_ADDR: http://mockbackend:9001
+      REDIS_ADDR: redis:6379
+      UPSTREAM_ADDR: http://mockbackend:9001
     depends_on:
       redis:
         condition: service_healthy
