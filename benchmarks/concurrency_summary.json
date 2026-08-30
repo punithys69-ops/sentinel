@@ -1,0 +1,52 @@
+[
+{
+  "trial": 1,
+  "requests": 10000,
+  "allowed": 100,
+  "rejected": 9900,
+  "gateway1": 34,
+  "gateway2": 34,
+  "gateway3": 32,
+  "over_admissions": 0
+}
+,{
+  "trial": 2,
+  "requests": 10000,
+  "allowed": 100,
+  "rejected": 9900,
+  "gateway1": 36,
+  "gateway2": 32,
+  "gateway3": 32,
+  "over_admissions": 0
+}
+,{
+  "trial": 3,
+  "requests": 10000,
+  "allowed": 100,
+  "rejected": 9900,
+  "gateway1": 36,
+  "gateway2": 29,
+  "gateway3": 35,
+  "over_admissions": 0
+}
+,{
+  "trial": 4,
+  "requests": 10000,
+  "allowed": 100,
+  "rejected": 9900,
+  "gateway1": 34,
+  "gateway2": 33,
+  "gateway3": 33,
+  "over_admissions": 0
+}
+,{
+  "trial": 5,
+  "requests": 10000,
+  "allowed": 100,
+  "rejected": 9900,
+  "gateway1": 32,
+  "gateway2": 33,
+  "gateway3": 35,
+  "over_admissions": 0
+}
+]

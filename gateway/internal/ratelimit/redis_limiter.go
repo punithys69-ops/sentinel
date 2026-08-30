@@ -26,17 +26,20 @@ type RedisLimiter struct {
 	capacity   float64
 	refillRate float64
 	ttl        time.Duration
+	gatewayID  string
 }
 
 // NewRedisLimiter creates a RedisLimiter.
 //
 //   - capacity   : maximum tokens a client may accumulate
-//   - refillRate : tokens added per second
+//   - refillRate : tokens added per second (0 means no refill)
 //   - ttl        : how long an idle client's bucket survives in Redis
+//   - gatewayID  : identity for proof counters (e.g. "gateway1")
 func NewRedisLimiter(
 	client *redis.Client,
 	capacity, refillRate float64,
 	ttl time.Duration,
+	gatewayID string,
 ) (*RedisLimiter, error) {
 	if capacity <= 0 {
 		return nil, ErrInvalidCapacity
@@ -51,6 +54,7 @@ func NewRedisLimiter(
 		capacity:   capacity,
 		refillRate: refillRate,
 		ttl:        ttl,
+		gatewayID:  gatewayID,
 	}, nil
 }
 
@@ -75,6 +79,7 @@ func (l *RedisLimiter) Allow(ctx context.Context, clientKey string) (bool, time.
 		l.refillRate,
 		nowMs,
 		ttlMs,
+		l.gatewayID,
 	).Int64Slice()
 
 	if err != nil {

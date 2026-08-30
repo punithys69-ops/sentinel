@@ -24,6 +24,8 @@ services:
       GATEWAY_ID: gateway1
       REDIS_ADDR: redis:6379
       UPSTREAM_ADDR: http://mockbackend:9001
+      RATE_CAPACITY: ${RATE_CAPACITY:-100}
+      RATE_REFILL: ${RATE_REFILL:-0}
     depends_on:
       redis:
         condition: service_healthy
@@ -37,6 +39,8 @@ services:
       GATEWAY_ID: gateway2
       REDIS_ADDR: redis:6379
       UPSTREAM_ADDR: http://mockbackend:9001
+      RATE_CAPACITY: ${RATE_CAPACITY:-100}
+      RATE_REFILL: ${RATE_REFILL:-0}
     depends_on:
       redis:
         condition: service_healthy
@@ -50,6 +54,8 @@ services:
       GATEWAY_ID: gateway3
       REDIS_ADDR: redis:6379
       UPSTREAM_ADDR: http://mockbackend:9001
+      RATE_CAPACITY: ${RATE_CAPACITY:-100}
+      RATE_REFILL: ${RATE_REFILL:-0}
     depends_on:
       redis:
         condition: service_healthy

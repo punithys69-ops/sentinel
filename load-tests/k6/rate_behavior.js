@@ -2,20 +2,20 @@ import http from 'k6/http';
 import { check } from 'k6';
 import { Counter } from 'k6/metrics';
 
-// Custom counters for clear reporting.
 const allowed  = new Counter('admitted_requests');
 const rejected = new Counter('rejected_requests');
 
 export const options = {
     scenarios: {
-        concurrency_proof: {
-            executor: 'shared-iterations',
-            vus: 200,
-            iterations: 10000,
-            maxDuration: '60s',
+        sustained_load: {
+            executor: 'constant-arrival-rate',
+            rate: 500,
+            timeUnit: '1s',
+            duration: '10s',
+            preAllocatedVUs: 100,
+            maxVUs: 500,
         },
     },
-    // Disable default thresholds so k6 doesn't fail on 429s.
     thresholds: {},
 };
 

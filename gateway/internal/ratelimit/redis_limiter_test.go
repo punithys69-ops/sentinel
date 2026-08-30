@@ -33,7 +33,7 @@ func TestRedisLimiter_Integration(t *testing.T) {
 		client.Del(ctx, "rate_limit:"+testKey)
 	})
 
-	limiter, err := NewRedisLimiter(client, 3, 1, 60*time.Second)
+	limiter, err := NewRedisLimiter(client, 3, 1, 60*time.Second, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestRedisLimiter_ClientsAreIndependent(t *testing.T) {
 		client.Del(ctx, "rate_limit:"+keyA, "rate_limit:"+keyB)
 	})
 
-	limiter, err := NewRedisLimiter(client, 1, 1, 60*time.Second)
+	limiter, err := NewRedisLimiter(client, 1, 1, 60*time.Second, "test")
 	if err != nil {
 		t.Fatal(err)
 	}

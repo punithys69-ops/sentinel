@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -20,10 +21,24 @@ func envOr(key, fallback string) string {
 	return fallback
 }
 
+func envFloat(key string, fallback float64) float64 {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	f, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		log.Fatalf("invalid %s: %v", key, err)
+	}
+	return f
+}
+
 func main() {
 	gatewayID := envOr("GATEWAY_ID", "gateway")
 	redisAddr := envOr("REDIS_ADDR", "localhost:6379")
 	upstreamAddr := envOr("UPSTREAM_ADDR", "http://localhost:9001")
+	capacity := envFloat("RATE_CAPACITY", 10)
+	refillRate := envFloat("RATE_REFILL", 2)
 
 	log.SetFlags(log.LstdFlags)
 	log.SetPrefix("[" + gatewayID + "] ")
@@ -39,10 +54,9 @@ func main() {
 	}
 
 	log.Printf("Redis OK")
+	log.Printf("rate limit: capacity=%.0f refill=%.0f/s", capacity, refillRate)
 
-	// capacity=10, refill=2 tokens/s, idle TTL=60s.
-	// These could also be read from environment variables in a later phase.
-	limiter, err := ratelimit.NewRedisLimiter(rdb, 10, 2, 60*time.Second)
+	limiter, err := ratelimit.NewRedisLimiter(rdb, capacity, refillRate, 60*time.Second, gatewayID)
 	if err != nil {
 		log.Fatalf("failed to create rate limiter: %v", err)
 	}

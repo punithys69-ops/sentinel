@@ -1,0 +1,30 @@
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 10000   15017.021794/s
+    checks_succeeded...: 100.00% 10000 out of 10000
+    checks_failed......: 0.00%   0 out of 10000
+
+    ✓ status is 200 or 429
+
+    CUSTOM
+    admitted_requests..............: 100    150.170218/s
+    rejected_requests..............: 9900   14866.851576/s
+
+    HTTP
+    http_req_duration..............: avg=12.58ms min=2.01ms med=10.9ms  max=265.95ms p(90)=16.84ms p(95)=21.07ms
+      { expected_response:true }...: avg=16.81ms min=4.52ms med=20.57ms max=28.78ms  p(90)=25.11ms p(95)=25.8ms 
+    http_req_failed................: 99.00% 9900 out of 10000
+    http_reqs......................: 10000  15017.021794/s
+
+    EXECUTION
+    iteration_duration.............: avg=13.17ms min=2.04ms med=10.92ms max=341.11ms p(90)=16.88ms p(95)=21.2ms 
+    iterations.....................: 10000  15017.021794/s
+
+    NETWORK
+    data_received..................: 2.1 MB 3.2 MB/s
+    data_sent......................: 780 kB 1.2 MB/s
+
+
+
