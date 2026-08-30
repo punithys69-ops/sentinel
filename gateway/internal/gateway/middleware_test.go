@@ -1,9 +1,11 @@
 package gateway
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/punithys69-ops/sentinel/internal/ratelimit"
 )
@@ -55,7 +57,6 @@ func TestRateLimitMiddleware_Returns429(t *testing.T) {
 // TestRateLimitMiddleware_DifferentClientsAreIndependent proves that
 // exhausting one client's bucket does not affect another client.
 func TestRateLimitMiddleware_DifferentClientsAreIndependent(t *testing.T) {
-	// capacity=1, refillRate=0.
 	limiter, err := ratelimit.NewLimiter(1, 0)
 	if err != nil {
 		t.Fatal(err)
@@ -91,4 +92,33 @@ func TestRateLimitMiddleware_DifferentClientsAreIndependent(t *testing.T) {
 	if recB.Code != http.StatusOK {
 		t.Fatalf("client-b first request: expected 200, got %d", recB.Code)
 	}
+}
+
+// TestRateLimitMiddleware_AcceptsInterface proves that the middleware accepts
+// any RateLimiter — not just the concrete *Limiter type.
+// This test uses a minimal stub implementation.
+func TestRateLimitMiddleware_AcceptsInterface(t *testing.T) {
+	stub := &alwaysAllowLimiter{}
+
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	handler := RateLimitMiddleware(stub, next)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/test", nil)
+	req.RemoteAddr = "1.2.3.4:9999"
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("stub limiter: expected 200, got %d", rec.Code)
+	}
+}
+
+// alwaysAllowLimiter is a stub RateLimiter that always allows requests.
+type alwaysAllowLimiter struct{}
+
+func (a *alwaysAllowLimiter) Allow(_ context.Context, _ string) (bool, time.Duration, error) {
+	return true, 0, nil
 }

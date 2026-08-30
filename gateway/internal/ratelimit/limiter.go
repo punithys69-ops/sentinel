@@ -1,6 +1,10 @@
 package ratelimit
 
-import "sync"
+import (
+	"context"
+	"sync"
+	"time"
+)
 
 // Limiter manages one token bucket per client.
 type Limiter struct {
@@ -45,21 +49,20 @@ func (l *Limiter) getBucket(clientKey string) (*TokenBucket, error) {
 }
 
 // Allow checks whether this client may make one more request.
-func (l *Limiter) Allow(clientKey string) (bool, error) {
+//
+// Satisfies the RateLimiter interface.
+// ctx is accepted for interface compatibility but unused in the in-memory path.
+func (l *Limiter) Allow(_ context.Context, clientKey string) (bool, time.Duration, error) {
 	bucket, err := l.getBucket(clientKey)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
-	return bucket.Allow(), nil
-}
-
-// RetryAfter returns an estimate of how long this client should wait.
-func (l *Limiter) RetryAfter(clientKey string) (float64, error) {
-	bucket, err := l.getBucket(clientKey)
-	if err != nil {
-		return 0, err
+	allowed := bucket.Allow()
+	if allowed {
+		return true, 0, nil
 	}
 
-	return bucket.RetryAfter().Seconds(), nil
+	retryAfter := bucket.RetryAfter()
+	return false, retryAfter, nil
 }
