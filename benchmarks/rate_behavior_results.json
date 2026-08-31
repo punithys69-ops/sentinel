@@ -1,0 +1,30 @@
+{
+  "experiment": "rate_behavior",
+  "config": {
+    "capacity": 100,
+    "refill_rate": 100,
+    "arrival_rate": 500,
+    "duration_seconds": 10,
+    "gateways": 3
+  },
+  "results": {
+    "total_requests": 5001,
+    "admitted": 1099,
+    "rejected": 3902,
+    "gateway1": 373,
+    "gateway2": 365,
+    "gateway3": 361
+  },
+  "theoretical_token_budget": {
+    "initial_burst": 100,
+    "refill_over_10s": 1000,
+    "maximum_possible": 1100,
+    "note": "Actual admits depend on request timing relative to refill. The bucket caps at 100, so tokens refilling while the bucket is full are wasted."
+  },
+  "latency": {
+    "avg_ms": 1.25,
+    "p90_ms": 1.81,
+    "p95_ms": 2.14,
+    "max_ms": 18.33
+  }
+}
