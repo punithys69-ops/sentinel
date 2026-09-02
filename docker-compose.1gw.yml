@@ -1,0 +1,42 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  mockbackend:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile.mockbackend
+    expose:
+      - "9001"
+
+  gateway1:
+    build:
+      context: ./gateway
+    environment:
+      GATEWAY_ID: gateway1
+      REDIS_ADDR: redis:6379
+      UPSTREAM_ADDR: http://mockbackend:9001
+      RATE_CAPACITY: ${RATE_CAPACITY:-100}
+      RATE_REFILL: ${RATE_REFILL:-100}
+    depends_on:
+      redis:
+        condition: service_healthy
+      mockbackend:
+        condition: service_started
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.1gw.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - gateway1

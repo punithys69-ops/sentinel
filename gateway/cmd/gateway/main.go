@@ -46,7 +46,10 @@ func main() {
 	log.Printf("connecting to Redis at %s", redisAddr)
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
+		Addr:         redisAddr,
+		DialTimeout:  2 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
 	})
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {

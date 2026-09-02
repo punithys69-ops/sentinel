@@ -1,8 +1,8 @@
 package gateway
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -29,6 +29,10 @@ func clientKey(r *http.Request) string {
 // middleware works with both the in-memory (Phase 1) and Redis (Phase 2)
 // implementations.
 //
+// Fail-closed policy: when the limiter returns an error (e.g. Redis
+// unreachable), the gateway responds with 500 rather than silently
+// admitting the request without verification.
+//
 // On rejection it writes:
 //
 //	HTTP 429 Too Many Requests
@@ -44,6 +48,7 @@ func RateLimitMiddleware(
 		// client disconnects before we get a decision from Redis.
 		allowed, retryAfter, err := limiter.Allow(r.Context(), key)
 		if err != nil {
+			log.Printf("client=%s error=%q status=500", key, err)
 			http.Error(w, "rate limiter unavailable", http.StatusInternalServerError)
 			return
 		}
@@ -61,13 +66,6 @@ func RateLimitMiddleware(
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-// Allow calls the limiter with a background context.
-// Useful in tests that don't have a live request context.
-func allowWithBackground(l ratelimit.RateLimiter, key string) (bool, error) {
-	allowed, _, err := l.Allow(context.Background(), key)
-	return allowed, err
 }
 
 func max(a, b int) int {
